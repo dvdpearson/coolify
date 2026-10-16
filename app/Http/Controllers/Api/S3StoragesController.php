@@ -9,6 +9,7 @@ use App\Rules\ValidS3BucketName;
 use App\Support\ValidationPatterns;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use OpenApi\Attributes as OA;
 
 class S3StoragesController extends Controller
@@ -97,6 +98,7 @@ class S3StoragesController extends Controller
                                     'endpoint' => ['type' => 'string'],
                                     'bucket' => ['type' => 'string'],
                                     'region' => ['type' => 'string'],
+                                    'signature_version' => ['type' => 'string'],
                                     'is_usable' => ['type' => 'boolean'],
                                     'team_id' => ['type' => 'integer'],
                                     'created_at' => ['type' => 'string'],
@@ -160,6 +162,7 @@ class S3StoragesController extends Controller
                                 'endpoint' => ['type' => 'string'],
                                 'bucket' => ['type' => 'string'],
                                 'region' => ['type' => 'string'],
+                                'signature_version' => ['type' => 'string'],
                                 'is_usable' => ['type' => 'boolean'],
                                 'team_id' => ['type' => 'integer'],
                                 'created_at' => ['type' => 'string'],
@@ -222,6 +225,7 @@ class S3StoragesController extends Controller
                         'region' => ['type' => 'string', 'example' => 'us-east-1', 'description' => 'S3 region.'],
                         'key' => ['type' => 'string', 'description' => 'Access key.'],
                         'secret' => ['type' => 'string', 'description' => 'Secret key.'],
+                        'signature_version' => ['type' => 'string', 'enum' => ['S3v4', 'S3v2'], 'default' => 'S3v4', 'description' => 'Signature version used when uploading backups.'],
                         'is_usable' => ['type' => 'boolean', 'description' => 'Whether the storage is marked usable.'],
                     ],
                 ),
@@ -258,7 +262,7 @@ class S3StoragesController extends Controller
     )]
     public function store(Request $request)
     {
-        $allowedFields = ['name', 'description', 'endpoint', 'bucket', 'region', 'key', 'secret', 'is_usable'];
+        $allowedFields = ['name', 'description', 'endpoint', 'bucket', 'region', 'key', 'secret', 'signature_version', 'is_usable'];
 
         $teamId = getTeamIdFromToken();
         if (is_null($teamId)) {
@@ -281,6 +285,7 @@ class S3StoragesController extends Controller
             'region' => 'required|string|max:255',
             'key' => 'required|string|max:255',
             'secret' => 'required|string|max:255',
+            'signature_version' => ['sometimes', Rule::in(S3Storage::SIGNATURE_VERSIONS)],
             'is_usable' => 'sometimes|boolean',
         ]);
         if ($validationError instanceof JsonResponse) {
@@ -296,6 +301,7 @@ class S3StoragesController extends Controller
             'region' => $body['region'],
             'key' => $body['key'],
             'secret' => $body['secret'],
+            'signature_version' => $body['signature_version'] ?? 'S3v4',
             'is_usable' => $body['is_usable'] ?? false,
         ]);
 
@@ -337,6 +343,7 @@ class S3StoragesController extends Controller
                         'region' => ['type' => 'string', 'description' => 'S3 region.'],
                         'key' => ['type' => 'string', 'description' => 'Access key.'],
                         'secret' => ['type' => 'string', 'description' => 'Secret key.'],
+                        'signature_version' => ['type' => 'string', 'enum' => ['S3v4', 'S3v2'], 'default' => 'S3v4', 'description' => 'Signature version used when uploading backups.'],
                         'is_usable' => ['type' => 'boolean', 'description' => 'Whether the storage is marked usable.'],
                     ],
                 ),
@@ -373,7 +380,7 @@ class S3StoragesController extends Controller
     )]
     public function update(Request $request)
     {
-        $allowedFields = ['name', 'description', 'endpoint', 'bucket', 'region', 'key', 'secret', 'is_usable'];
+        $allowedFields = ['name', 'description', 'endpoint', 'bucket', 'region', 'key', 'secret', 'signature_version', 'is_usable'];
 
         $teamId = getTeamIdFromToken();
         if (is_null($teamId)) {
@@ -395,6 +402,7 @@ class S3StoragesController extends Controller
             'region' => 'sometimes|string|max:255',
             'key' => 'sometimes|string|max:255',
             'secret' => 'sometimes|string|max:255',
+            'signature_version' => ['sometimes', Rule::in(S3Storage::SIGNATURE_VERSIONS)],
             'is_usable' => 'sometimes|boolean',
         ]);
         if ($validationError instanceof JsonResponse) {

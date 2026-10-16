@@ -334,9 +334,57 @@ describe('POST /api/v1/s3-storages', function () {
 
         $response->assertStatus(422);
     });
+
+    test('defaults the signature version to S3v4', function () {
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->bearerToken,
+            'Content-Type' => 'application/json',
+        ])->postJson('/api/v1/s3-storages', validS3StoragePayload());
+
+        $response->assertStatus(201);
+        expect(S3Storage::whereUuid($response->json('uuid'))->first()->signature_version)->toBe('S3v4');
+    });
+
+    test('creates an s3 storage with the S3v2 signature version', function () {
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->bearerToken,
+            'Content-Type' => 'application/json',
+        ])->postJson('/api/v1/s3-storages', validS3StoragePayload([
+            'signature_version' => 'S3v2',
+        ]));
+
+        $response->assertStatus(201);
+        expect(S3Storage::whereUuid($response->json('uuid'))->first()->signature_version)->toBe('S3v2');
+    });
+
+    test('rejects an unknown signature version', function () {
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->bearerToken,
+            'Content-Type' => 'application/json',
+        ])->postJson('/api/v1/s3-storages', validS3StoragePayload([
+            'signature_version' => 'S3v4; rm -rf /',
+        ]));
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['signature_version']);
+    });
 });
 
 describe('PATCH /api/v1/s3-storages/{uuid}', function () {
+    test('updates the signature version', function () {
+        $storage = createS3StorageForTeam($this->team);
+
+        $response = $this->withHeaders([
+            'Authorization' => 'Bearer '.$this->bearerToken,
+            'Content-Type' => 'application/json',
+        ])->patchJson("/api/v1/s3-storages/{$storage->uuid}", [
+            'signature_version' => 'S3v2',
+        ]);
+
+        $response->assertStatus(200);
+        expect($storage->fresh()->signature_version)->toBe('S3v2');
+    });
+
     test('updates s3 storage name', function () {
         $storage = createS3StorageForTeam($this->team, ['name' => 'Old Name']);
 

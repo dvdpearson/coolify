@@ -62,6 +62,7 @@ test('S3Storage model fillable attributes are configured correctly', function ()
         'secret',
         'bucket',
         'endpoint',
+        'signature_version',
         'is_usable',
         'unusable_email_sent',
     ]);
@@ -144,3 +145,23 @@ test('S3Storage testConnection rejects invalid bucket before building client', f
     'newline' => ["lab\nid"],
     'underscore' => ['lab_bucket'],
 ]);
+
+test('S3Storage passes its signature version to the MinIO client', function () {
+    $s3Storage = new S3Storage;
+
+    $s3Storage->setRawAttributes(['signature_version' => 'S3v4']);
+    expect($s3Storage->minioClientApiOption())->toBe('--api S3v4');
+
+    $s3Storage->setRawAttributes(['signature_version' => 'S3v2']);
+    expect($s3Storage->minioClientApiOption())->toBe('--api S3v2');
+});
+
+test('S3Storage falls back to S3v4 for a missing or unknown signature version', function () {
+    $s3Storage = new S3Storage;
+
+    $s3Storage->setRawAttributes(['signature_version' => null]);
+    expect($s3Storage->minioClientApiOption())->toBe('--api S3v4');
+
+    $s3Storage->setRawAttributes(['signature_version' => 'S3v4; rm -rf /']);
+    expect($s3Storage->minioClientApiOption())->toBe('--api S3v4');
+});

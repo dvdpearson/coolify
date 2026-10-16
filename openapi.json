@@ -14501,6 +14501,9 @@
                                             "region": {
                                                 "type": "string"
                                             },
+                                            "signature_version": {
+                                                "type": "string"
+                                            },
                                             "is_usable": {
                                                 "type": "boolean"
                                             },
@@ -14587,6 +14590,15 @@
                                     "secret": {
                                         "type": "string",
                                         "description": "Secret key."
+                                    },
+                                    "signature_version": {
+                                        "type": "string",
+                                        "enum": [
+                                            "S3v4",
+                                            "S3v2"
+                                        ],
+                                        "default": "S3v4",
+                                        "description": "Signature version used when uploading backups."
                                     },
                                     "is_usable": {
                                         "type": "boolean",
@@ -14676,6 +14688,9 @@
                                             "type": "string"
                                         },
                                         "region": {
+                                            "type": "string"
+                                        },
+                                        "signature_version": {
                                             "type": "string"
                                         },
                                         "is_usable": {
@@ -14810,6 +14825,15 @@
                                     "secret": {
                                         "type": "string",
                                         "description": "Secret key."
+                                    },
+                                    "signature_version": {
+                                        "type": "string",
+                                        "enum": [
+                                            "S3v4",
+                                            "S3v2"
+                                        ],
+                                        "default": "S3v4",
+                                        "description": "Signature version used when uploading backups."
                                     },
                                     "is_usable": {
                                         "type": "boolean",

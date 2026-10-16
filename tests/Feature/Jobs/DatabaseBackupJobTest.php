@@ -326,6 +326,12 @@ test('database backup job escapes the S3 copy destination argument', function ()
         ->and($source)->not->toContain('mc cp $this->backup_location temporary/$bucket{$this->backup_dir}/');
 });
 
+test('database backup job passes the storage signature version to mc', function () {
+    $source = file_get_contents(app_path('Jobs/DatabaseBackupJob.php'));
+
+    expect($source)->toContain('mc alias set{$resolveOptions} {$s3->minioClientApiOption()} temporary {$escapedEndpoint}');
+});
+
 test('database dump compression uses the helper image and shared CPU setting', function (int $compressionCpuPercentage) {
     InstanceSettings::unguarded(fn () => InstanceSettings::create(['id' => 0]));
     $backup = new ScheduledDatabaseBackup(['timeout' => 3600]);

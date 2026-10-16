@@ -160,7 +160,7 @@ class StartDatabaseImport
             $this->startS3HelperWithEnv($storage, $server, $helper, $network);
             $sourceArg = escapeshellarg("s3temp/{$storage->bucket}/{$key}");
             $commandList = [
-                'docker exec '.escapeshellarg($helper).' sh -c '.escapeshellarg('mc alias set s3temp "$S3_ENDPOINT" "$S3_ACCESS_KEY" "$S3_SECRET_KEY"'),
+                'docker exec '.escapeshellarg($helper).' sh -c '.escapeshellarg('mc alias set '.$storage->minioClientApiOption().' s3temp "$S3_ENDPOINT" "$S3_ACCESS_KEY" "$S3_SECRET_KEY"'),
                 'docker exec '.escapeshellarg($helper).' mc cp '.$sourceArg.' /tmp/restore',
                 ...$this->streamFromHelper($helper, $container, $containerPath),
                 'docker rm -f '.escapeshellarg($helper).' 2>/dev/null || true',

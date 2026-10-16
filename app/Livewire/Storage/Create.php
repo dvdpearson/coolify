@@ -9,6 +9,7 @@ use App\Support\DomainUrlParts;
 use App\Support\ValidationPatterns;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Uri;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class Create extends Component
@@ -24,6 +25,8 @@ class Create extends Component
     public string $key;
 
     public string $secret;
+
+    public string $signatureVersion = 'S3v4';
 
     public string $bucket;
 
@@ -45,6 +48,7 @@ class Create extends Component
             'secret' => 'required|max:255',
             'bucket' => ['required', new ValidS3BucketName],
             'endpoint' => ['required', 'max:255', new SafeWebhookUrl],
+            'signatureVersion' => ['required', Rule::in(S3Storage::SIGNATURE_VERSIONS)],
         ];
     }
 
@@ -74,6 +78,7 @@ class Create extends Component
         'secret' => 'Secret',
         'bucket' => 'Bucket',
         'endpoint' => 'Endpoint',
+        'signatureVersion' => 'Signature version',
     ];
 
     public function submit()
@@ -93,6 +98,7 @@ class Create extends Component
             $this->storage->key = $this->key;
             $this->storage->secret = $this->secret;
             $this->storage->bucket = $this->bucket;
+            $this->storage->signature_version = $this->signatureVersion;
             if (empty($this->endpoint)) {
                 $this->storage->endpoint = "https://s3.{$this->region}.amazonaws.com";
             } else {

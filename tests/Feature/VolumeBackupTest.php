@@ -2001,6 +2001,7 @@ it('streams S3-only volume backups without creating or copying a local archive',
     $expectedFilename = 'volume-app-data-1786795200.tar.gz';
     Process::assertRan(fn ($process) => str_contains($process->command, 'tar -I')
         && str_contains($process->command, 'mc pipe')
+        && str_contains($process->command, '--api S3v4 temporary')
         && str_contains($process->command, '>/dev/null && (compressor=')
         && str_contains($process->command, '>/dev/null) && mc stat')
         && str_contains($process->command, 'temporary/bucket/')
@@ -2105,6 +2106,8 @@ it('keeps local-first archive creation and mc copy when retaining a local volume
         && ! str_contains($process->command, 'mc pipe'));
     Process::assertRan(fn ($process) => str_contains($process->command, 'mc cp --resolve ')
         && ! str_contains($process->command, 'mc pipe'));
+    Process::assertRan(fn ($process) => str_contains($process->command, 'mc alias set --resolve ')
+        && str_contains($process->command, '--api S3v4 temporary'));
 });
 
 it('removes local volume backups older than the configured retention days', function () {

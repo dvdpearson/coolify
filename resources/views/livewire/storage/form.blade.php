@@ -34,6 +34,11 @@
                 <x-forms.input canGate="update" :canResource="$storage" required type="password"
                     label="Secret key" id="secret" />
             @endif
+            <x-forms.listbox canGate="update" :canResource="$storage" required id="signatureVersion"
+                label="Signature version" helper="Signature used when uploading backups. Keep S3v4 unless your provider only supports S3v2." :options="[
+                ['value' => 'S3v4', 'label' => 'S3v4'],
+                ['value' => 'S3v2', 'label' => 'S3v2 (legacy)'],
+            ]" />
         </div>
     </x-application.settings-section>
 </form>

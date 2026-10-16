@@ -94,7 +94,7 @@ test('s3 import activity command does not contain storage key or secret', functi
         ->not->toContain('.env')
         ->not->toContain('S3_ACCESS_KEY=')
         ->not->toContain('S3_SECRET_KEY=')
-        ->toContain('mc alias set s3temp "$S3_ENDPOINT" "$S3_ACCESS_KEY" "$S3_SECRET_KEY"');
+        ->toContain('mc alias set --api S3v4 s3temp "$S3_ENDPOINT" "$S3_ACCESS_KEY" "$S3_SECRET_KEY"');
 
     Queue::assertPushed(CoolifyTask::class, function (CoolifyTask $job) {
         $cleanup = $job->call_event_data;

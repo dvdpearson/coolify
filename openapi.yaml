@@ -9276,7 +9276,7 @@ paths:
               schema:
                 type: array
                 items:
-                  properties: { uuid: { type: string }, name: { type: string }, description: { type: string, nullable: true }, endpoint: { type: string }, bucket: { type: string }, region: { type: string }, is_usable: { type: boolean }, team_id: { type: integer }, created_at: { type: string }, updated_at: { type: string } }
+                  properties: { uuid: { type: string }, name: { type: string }, description: { type: string, nullable: true }, endpoint: { type: string }, bucket: { type: string }, region: { type: string }, signature_version: { type: string }, is_usable: { type: boolean }, team_id: { type: integer }, created_at: { type: string }, updated_at: { type: string } }
                   type: object
         '401':
           $ref: '#/components/responses/401'
@@ -9331,6 +9331,11 @@ paths:
                 secret:
                   type: string
                   description: 'Secret key.'
+                signature_version:
+                  type: string
+                  enum: [S3v4, S3v2]
+                  default: S3v4
+                  description: 'Signature version used when uploading backups.'
                 is_usable:
                   type: boolean
                   description: 'Whether the storage is marked usable.'
@@ -9381,6 +9386,7 @@ paths:
                   endpoint: { type: string }
                   bucket: { type: string }
                   region: { type: string }
+                  signature_version: { type: string }
                   is_usable: { type: boolean }
                   team_id: { type: integer }
                   created_at: { type: string }
@@ -9466,6 +9472,11 @@ paths:
                 secret:
                   type: string
                   description: 'Secret key.'
+                signature_version:
+                  type: string
+                  enum: [S3v4, S3v2]
+                  default: S3v4
+                  description: 'Signature version used when uploading backups.'
                 is_usable:
                   type: boolean
                   description: 'Whether the storage is marked usable.'

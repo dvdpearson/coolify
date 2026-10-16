@@ -23,6 +23,8 @@ class S3Storage extends BaseModel
 
     private const REQUEST_TIMEOUT_SECONDS = 15;
 
+    public const SIGNATURE_VERSIONS = ['S3v4', 'S3v2'];
+
     protected $fillable = [
         'team_id',
         'name',
@@ -32,6 +34,7 @@ class S3Storage extends BaseModel
         'secret',
         'bucket',
         'endpoint',
+        'signature_version',
         'is_usable',
         'unusable_email_sent',
     ];
@@ -146,6 +149,19 @@ class S3Storage extends BaseModel
     public function scheduledVolumeBackups()
     {
         return $this->hasMany(ScheduledVolumeBackup::class, 's3_storage_id');
+    }
+
+    /**
+     * Passed to `mc alias set`. Without it, mc probes the endpoint on every run and can
+     * fall back to S3v2 when the probe fails, which most providers reject.
+     */
+    public function minioClientApiOption(): string
+    {
+        $signatureVersion = in_array($this->signature_version, self::SIGNATURE_VERSIONS, true)
+            ? $this->signature_version
+            : 'S3v4';
+
+        return '--api '.$signatureVersion;
     }
 
     public function awsUrl()

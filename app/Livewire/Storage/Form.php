@@ -9,6 +9,7 @@ use App\Support\DomainUrlParts;
 use App\Support\ValidationPatterns;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -37,6 +38,8 @@ class Form extends Component
 
     public string $secret;
 
+    public string $signatureVersion = 'S3v4';
+
     public ?bool $isUsable = null;
 
     public bool $isPasswordHiddenForMember = false;
@@ -52,6 +55,7 @@ class Form extends Component
             'secret' => 'required|max:255',
             'bucket' => ['required', new ValidS3BucketName],
             'endpoint' => ['required', 'max:255', new SafeWebhookUrl],
+            'signatureVersion' => ['required', Rule::in(S3Storage::SIGNATURE_VERSIONS)],
         ];
     }
 
@@ -82,6 +86,7 @@ class Form extends Component
         'secret' => 'Secret',
         'bucket' => 'Bucket',
         'endpoint' => 'Endpoint',
+        'signatureVersion' => 'Signature version',
     ];
 
     /**
@@ -100,6 +105,7 @@ class Form extends Component
             $this->storage->region = $this->region;
             $this->storage->key = $this->key;
             $this->storage->secret = $this->secret;
+            $this->storage->signature_version = $this->signatureVersion;
             $this->storage->is_usable = $this->isUsable;
         } else {
             // Sync FROM model (on load/refresh)
@@ -110,6 +116,7 @@ class Form extends Component
             $this->endpointPartsChanged = false;
             $this->bucket = $this->storage->bucket;
             $this->region = $this->storage->region;
+            $this->signatureVersion = $this->storage->signature_version ?? 'S3v4';
             $canSeeCredentials = auth()->user()?->can('update', $this->storage) ?? false;
             $this->key = $canSeeCredentials ? $this->storage->key : '';
             $this->secret = $canSeeCredentials ? $this->storage->secret : '';
@@ -144,6 +151,7 @@ class Form extends Component
             $testedStorage->region = $this->region;
             $testedStorage->key = $this->key;
             $testedStorage->secret = $this->secret;
+            $testedStorage->signature_version = $this->signatureVersion;
 
             $testedStorage->testConnection();
 

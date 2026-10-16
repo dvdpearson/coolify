@@ -18,6 +18,11 @@
                 <x-forms.input required type="password" label="Access Key" id="key" />
                 <x-forms.input required type="password" label="Secret Key" id="secret" />
             </div>
+            <x-forms.listbox required id="signatureVersion" label="Signature version"
+                helper="Signature used when uploading backups. Keep S3v4 unless your provider only supports S3v2." :options="[
+                ['value' => 'S3v4', 'label' => 'S3v4'],
+                ['value' => 'S3v2', 'label' => 'S3v2 (legacy)'],
+            ]" />
 
             <x-forms.button class="mt-4" type="submit" wire:target="submit">
                 Validate Connection & Continue

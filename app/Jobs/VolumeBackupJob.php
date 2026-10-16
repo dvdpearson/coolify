@@ -426,7 +426,7 @@ class VolumeBackupJob implements ShouldBeEncrypted, ShouldQueue
                 'docker rm -f '.escapeshellarg($containerName).' >/dev/null 2>&1 || true',
                 'docker run -d --name '.escapeshellarg($containerName).' --rm -v '
                     .escapeshellarg($backupLocation.':'.$backupLocation.':ro').' '.escapeshellarg($image),
-                'docker exec '.escapeshellarg($containerName).' mc alias set'.$resolveOptions.' temporary '
+                'docker exec '.escapeshellarg($containerName).' mc alias set'.$resolveOptions.' '.$s3->minioClientApiOption().' temporary '
                     .escapeshellarg($s3->endpoint).' '.escapeshellarg($s3->key).' '.escapeshellarg($s3->secret),
                 'docker exec '.escapeshellarg($containerName).' mc cp'.$resolveOptions.' '.escapeshellarg($backupLocation).' '
                     .escapeshellarg('temporary/'.$s3->bucket.$backupDirectory.'/'),
@@ -449,7 +449,7 @@ class VolumeBackupJob implements ShouldBeEncrypted, ShouldQueue
             ->implode(' ');
         $resolveOptions = $resolveOptions === '' ? '' : ' '.$resolveOptions;
         $destination = 'temporary/'.$s3->bucket.$backupLocation;
-        $streamScript = 'set -o pipefail; mc alias set'.$resolveOptions.' temporary '
+        $streamScript = 'set -o pipefail; mc alias set'.$resolveOptions.' '.$s3->minioClientApiOption().' temporary '
             .escapeshellarg($s3->endpoint).' '.escapeshellarg($s3->key).' '.escapeshellarg($s3->secret)
             .' >/dev/null && ('.$archiveScript.' | mc pipe --quiet'.$resolveOptions.' '.escapeshellarg($destination).' >/dev/null)'
             .' && mc stat --json'.$resolveOptions.' '.escapeshellarg($destination)
