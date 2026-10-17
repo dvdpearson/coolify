@@ -144,3 +144,27 @@ test('S3Storage testConnection rejects invalid bucket before building client', f
     'newline' => ["lab\nid"],
     'underscore' => ['lab_bucket'],
 ]);
+
+test('S3Storage upload retries rerun a failed upload until it succeeds', function () {
+    $counter = tempnam(sys_get_temp_dir(), 'upload-attempts');
+    file_put_contents($counter, '0');
+    $upload = 'n=$(cat '.escapeshellarg($counter).'); echo $((n + 1)) > '.escapeshellarg($counter).'; [ "$n" -ge 2 ]';
+
+    exec(S3Storage::withUploadRetries($upload, delaySeconds: 0), result_code: $exitCode);
+
+    expect($exitCode)->toBe(0)
+        ->and(trim(file_get_contents($counter)))->toBe('3');
+    unlink($counter);
+});
+
+test('S3Storage upload retries give up after three attempts', function () {
+    $counter = tempnam(sys_get_temp_dir(), 'upload-attempts');
+    file_put_contents($counter, '0');
+    $upload = 'n=$(cat '.escapeshellarg($counter).'); echo $((n + 1)) > '.escapeshellarg($counter).'; false';
+
+    exec(S3Storage::withUploadRetries($upload, delaySeconds: 0), result_code: $exitCode);
+
+    expect($exitCode)->toBe(1)
+        ->and(trim(file_get_contents($counter)))->toBe('3');
+    unlink($counter);
+});

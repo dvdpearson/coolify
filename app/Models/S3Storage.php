@@ -23,6 +23,10 @@ class S3Storage extends BaseModel
 
     private const REQUEST_TIMEOUT_SECONDS = 15;
 
+    private const UPLOAD_ATTEMPTS = 3;
+
+    private const UPLOAD_RETRY_DELAY_SECONDS = 15;
+
     protected $fillable = [
         'team_id',
         'name',
@@ -193,6 +197,20 @@ class S3Storage extends BaseModel
     {
         return Attribute::make(
             set: fn (?string $value) => $value ? trim($value) : null,
+        );
+    }
+
+    /**
+     * Reruns an mc upload a few times, so a short network outage does not fail the backup's S3 copy.
+     * mc cp is safe to rerun: it overwrites the same object.
+     */
+    public static function withUploadRetries(string $command, int $delaySeconds = self::UPLOAD_RETRY_DELAY_SECONDS): string
+    {
+        return 'sh -c '.escapeshellarg(
+            'attempt=1; until '.$command.'; do '
+            .'[ "$attempt" -ge '.self::UPLOAD_ATTEMPTS.' ] && exit 1; '
+            .'sleep $((attempt * '.$delaySeconds.')); '
+            .'attempt=$((attempt + 1)); done'
         );
     }
 
